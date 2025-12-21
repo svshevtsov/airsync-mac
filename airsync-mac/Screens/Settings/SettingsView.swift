@@ -112,62 +112,6 @@ struct SettingsView: View {
                             )
                             .frame(width: 200)
                         }
-
-                        HStack{
-                            Label("Hide Dock Icon", systemImage: "dock.rectangle")
-                            Spacer()
-                            Toggle("", isOn: $appState.hideDockIcon)
-                                .toggleStyle(.switch)
-                        }
-
-                        HStack{
-                            Label("Always Open Window", systemImage: "macwindow")
-                            Spacer()
-                            Toggle("", isOn: $appState.alwaysOpenWindow)
-                                .toggleStyle(.switch)
-                        }
-
-                        HStack{
-                            Label("Menubar text", systemImage: "menubar.arrow.up.rectangle")
-                            Spacer()
-                            Toggle("", isOn: $appState.showMenubarText)
-                                .toggleStyle(.switch)
-                        }
-
-                        if appState.showMenubarText {
-                            HStack {
-                                Label("Menubar Text length", systemImage: "textformat.123")
-                                Spacer()
-                                Slider(
-                                    value: Binding(
-                                        get: { Double(appState.menubarTextMaxLength) },
-                                        set: { appState.menubarTextMaxLength = Int($0) }
-                                    ),
-                                    in: 10...80,
-                                    step: 5
-                                )
-                                .frame(width: 200)
-                                .controlSize(.small)
-                            }
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                            .animation(.easeInOut(duration: 0.3), value: appState.showMenubarText)
-
-                            HStack{
-                                Label {
-                                    Text("Show device name")
-                                } icon: {
-                                    Image(systemName: "iphone.gen3")
-                                        .imageScale(.medium)
-                                        .frame(width: 18, alignment: .center)
-                                }
-                                Spacer()
-                                Toggle("", isOn: $appState.showMenubarDeviceName)
-                                    .toggleStyle(.switch)
-                            }
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                            .animation(.easeInOut(duration: 0.3), value: appState.showMenubarText)
-
-                        }
                     }
                     .padding()
                     .background(.background.opacity(0.3))
