@@ -31,6 +31,10 @@ class AppIconManager: ObservableObject {
             self.revertToDefaultIfNeeded()
         }
     }
+    
+    private func isEnabled() -> Bool {
+        return UserDefaults.standard.bool(forKey: "isCustomAppIconEnabled")
+    }
 
     func setIcon(_ icon: AppIcon) {
         currentIcon = icon
@@ -44,6 +48,11 @@ class AppIconManager: ObservableObject {
     }
 
     private func updateAppIcon(for icon: AppIcon) {
+        if (!isEnabled()) {
+            print("[app-icon-manager] custom AppIcon is not enabled")
+            return
+        }
+        
         let iconName = icon.iconName ?? "AppIconImage"
 
         // For macOS apps, try different approaches to load the image
