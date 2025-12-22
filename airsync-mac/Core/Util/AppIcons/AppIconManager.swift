@@ -11,8 +11,26 @@ import AppKit
 
 class AppIconManager: ObservableObject {
     @Published var currentIcon: AppIcon = .defaultIcon
+    @Published var isCustomIconEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isCustomIconEnabled, forKey: "isCustomAppIconEnabled")
+            if isCustomIconEnabled {
+                self.updateAppIcon(for: self.currentIcon)
+            }
+            if !isCustomIconEnabled && defaultApplicationIconImage != nil {
+                DispatchQueue.main.async {
+                    NSApplication.shared.applicationIconImage = self.defaultApplicationIconImage
+                }
+            }
+        }
+    }
+    private var defaultApplicationIconImage: NSImage?;
 
     init() {
+        // Load the saved enabled state
+        self.defaultApplicationIconImage = NSApplication.shared.applicationIconImage;
+        self.isCustomIconEnabled = UserDefaults.standard.bool(forKey: "isCustomAppIconEnabled")
+
         // Listen for license status changes
         NotificationCenter.default.addObserver(
             self,
@@ -44,6 +62,11 @@ class AppIconManager: ObservableObject {
     }
 
     private func updateAppIcon(for icon: AppIcon) {
+        if (!isCustomIconEnabled) {
+            print("[app-icon-manager] custom AppIcon is not enabled")
+            return
+        }
+        
         let iconName = icon.iconName ?? "AppIconImage"
 
         // For macOS apps, try different approaches to load the image

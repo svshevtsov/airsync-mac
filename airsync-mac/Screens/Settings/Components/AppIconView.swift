@@ -21,13 +21,21 @@ struct AppIconView: View {
             }
             .padding(EdgeInsets(top: 16, leading: 16, bottom: 0, trailing: 16))
 
+            HStack {
+                Text("Enable Custom Icons")
+                Spacer()
+                Toggle("", isOn: $appIconManager.isCustomIconEnabled)
+                    .toggleStyle(.switch)
+            }
+            .padding(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+
             ScrollView(.horizontal) {
                 HStack(alignment: .top,spacing: 16) {
                     ForEach(AppIcon.allIcons) { icon in
                         AppIconImageView(
                             appIconManager: appIconManager,
                             icon: icon,
-                            isDisabled: !appState.isPlus && appState.licenseCheck,
+                            isDisabled: !appIconManager.isCustomIconEnabled || (!appState.isPlus && appState.licenseCheck),
                             showLock: !appState.isPlus && appState.licenseCheck && !icon.isDefault,
                             onRestrictedTap: {
                                 showingPlusPopover = true

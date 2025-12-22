@@ -22,9 +22,9 @@ enum KeychainStorage {
     static func set(_ value: String, for key: String) {
         guard let data = value.data(using: .utf8) else { return }
 
-    var query = baseQuery(for: key)
-    query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-    query[kSecValueData as String] = data
+        var query = baseQuery(for: key)
+        query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        query[kSecValueData as String] = data
 
         let status = SecItemAdd(query as CFDictionary, nil)
         if status == errSecDuplicateItem {

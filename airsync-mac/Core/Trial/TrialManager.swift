@@ -94,7 +94,7 @@ final class TrialManager: ObservableObject {
         expiresAt = nil
         token = nil
         lastSyncDate = nil
-    lastError = nil
+        lastError = nil
 
         UserDefaults.standard.trialToken = nil
         UserDefaults.standard.trialExpiryDate = nil
@@ -308,6 +308,9 @@ final class TrialManager: ObservableObject {
     }
 
     private static func loadOrCreateDeviceIdentifier() -> String {
+#if SELF_COMPILED
+        return "SELF_COMPILED"
+#endif
         let key = "trial-device-identifier"
 
         if let existing = KeychainStorage.string(for: key) {

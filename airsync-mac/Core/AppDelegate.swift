@@ -22,8 +22,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching() {
         NSWindow.allowsAutomaticWindowTabbing = false
-        // Dock icon visibility is now controlled by AppState.hideDockIcon
-        AppState.shared.updateDockIconVisibility()
+        // Always show dock icon
+        NSApp.setActivationPolicy(.regular)
+    }
+
+    // Prevent app from quitting when window is closed
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return false
+    }
+
+    // Handle dock icon click to reopen the main window
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            showAndActivateMainWindow()
+        } else {
+            mainWindow?.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        return true
     }
 
     // Configure and retain main window when captured
@@ -43,9 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func showAndActivateMainWindow() {
         guard let window = mainWindow else { return }
 
-        if !AppState.shared.hideDockIcon {
-            NSApp.setActivationPolicy(.regular)
-        }
+        NSApp.setActivationPolicy(.regular)
 
         window.collectionBehavior.insert(.moveToActiveSpace)
         if window.isMiniaturized { window.deminiaturize(nil) }
@@ -65,22 +79,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 extension AppDelegate: NSWindowDelegate {
     func windowWillClose(_ notification: Foundation.Notification) {
-        if let window = (notification as NSNotification).object as? NSWindow,
-           window === mainWindow {
-            DispatchQueue.main.async {
-                if AppState.shared.hideDockIcon {
-                    NSApp.setActivationPolicy(.accessory)
-                }
-            }
-        }
+        // Window closed, but dock icon remains visible
     }
 
     func windowDidBecomeMain(_ notification: Foundation.Notification) {
+        // Ensure we're in regular mode when window becomes main
         if let window = (notification as NSNotification).object as? NSWindow,
            window === mainWindow {
-            if !AppState.shared.hideDockIcon {
-                NSApp.setActivationPolicy(.regular)
-            }
+            NSApp.setActivationPolicy(.regular)
         }
     }
 }
