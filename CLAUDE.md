@@ -194,9 +194,6 @@ Key settings persisted in UserDefaults:
 - `isClipboardSyncEnabled`: Clipboard sync toggle
 - `sendNowPlayingStatus`: Send Mac media info to Android
 - `windowOpacity`: Main window opacity
-- `hideDockIcon`: Hide dock icon (menu bar only mode)
-- `showMenubarText`: Show text in menu bar
-- `showMenubarDeviceName`: Show device name in menu bar
 - `menubarTextMaxLength`: Max characters for menu bar text
 - `notificationSound`: Notification sound choice
 - `dismissNotif`: Auto-dismiss notifications on Android when dismissed on Mac
