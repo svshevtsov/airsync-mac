@@ -73,7 +73,17 @@ struct AppContentView: View {
                             }
                         }
                     }
+            }
 
+            // History Tab
+            HistoryView()
+                .tabItem {
+                    Image(systemName: "clock.arrow.circlepath")
+                    //                        Label("History", systemImage: "clock.arrow.circlepath")
+                }
+                .tag(TabIdentifier.history)
+
+            if appState.device != nil {
                 // Apps Tab
                 AppsView()
                     .tabItem {
