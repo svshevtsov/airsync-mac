@@ -151,7 +151,7 @@ final class NotificationHistoryManager: ObservableObject {
     }
 
     /// Fetch notification history with filters
-    func fetchHistory(query: HistoryQuery = HistoryQuery()) async -> [NotificationHistory] {
+    func fetchHistory(query: HistoryQuery) async -> [NotificationHistory] {
         guard let db = dbQueue else { return [] }
 
         do {

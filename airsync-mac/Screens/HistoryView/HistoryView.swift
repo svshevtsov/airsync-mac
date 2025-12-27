@@ -14,7 +14,6 @@ struct HistoryView: View {
     @State private var history: [NotificationHistory] = []
     @State private var searchText = ""
     @State private var selectedPackageFilter: String? = nil
-    @State private var isLoading = false
     @State private var showingClearConfirmation = false
 
     var body: some View {
@@ -24,10 +23,7 @@ struct HistoryView: View {
                 .padding()
 
             // History list
-            if isLoading {
-                ProgressView(L("history.loading"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if history.isEmpty {
+            if history.isEmpty {
                 emptyStateView
             } else {
                 historyList
@@ -135,8 +131,6 @@ struct HistoryView: View {
     // MARK: - Actions
 
     private func loadHistory() async {
-        isLoading = true
-
         var query = NotificationHistoryManager.HistoryQuery(limit: 200)
         query.searchText = searchText.isEmpty ? nil : searchText
         query.packageFilter = selectedPackageFilter
@@ -145,7 +139,6 @@ struct HistoryView: View {
 
         await MainActor.run {
             history = results
-            isLoading = false
         }
     }
 }
