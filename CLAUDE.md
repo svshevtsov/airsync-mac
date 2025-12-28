@@ -99,6 +99,8 @@ No separate dependency installation step is required - Xcode handles SPM depende
 - Launches scrcpy for full-device or per-app mirroring (Plus feature)
 - Configurable bitrate and resolution for scrcpy
 - Automatic connection when device pairs (if ADB enabled and Plus active)
+- mDNS service discovery fallback: If device doesn't report ADB ports, uses `adb mdns services` to discover available ports
+- Fallback can be disabled via `fallbackToMdns` setting (enabled by default)
 
 **Trial & Licensing (Core/Trial/)**
 - TrialManager: Handles trial activation and expiration
@@ -117,6 +119,8 @@ No separate dependency installation step is required - Xcode handles SPM depende
 - Icons defined in AppIconExtensions.swift with allIcons array
 - Icon assets stored in Assets.xcassets/AppIcons/
 - Reverts to default icon if Plus subscription expires
+- `isCustomIconEnabled` toggle: Users can enable/disable custom app icons even with Plus active
+- Stored in UserDefaults as `isCustomAppIconEnabled`
 
 **Localization (Localization/)**
 - Localizer.swift: Centralized string localization
@@ -131,7 +135,11 @@ No separate dependency installation step is required - Xcode handles SPM depende
 - NotificationView: List of Android notifications with action buttons
 - AppsView: Grid of Android apps with notification toggle switches and pin functionality
 - TransfersView: File transfer progress tracking
-- SettingsView: App settings, license activation, features toggles
+- SettingsView: App settings, license activation, features toggles, auto-update preferences
+
+**SnowfallView (Components/Custom/SnowfallView.swift)**
+- Seasonal visual effect using CAEmitterLayer
+- Animated snowfall particles displayed in UI during appropriate seasons
 
 **MenubarView**: Menu bar extra (status bar app)
 - Shows connected device name and notification count
@@ -190,15 +198,21 @@ Key settings persisted in UserDefaults:
 - `devicePort`: WebSocket server port (default 5297)
 - `adbPort`: ADB wireless debugging port (default 5555)
 - `adbEnabled`: Whether ADB auto-connect is enabled
+- `adbConnectedIP`: IP address of the connected ADB device
+- `fallbackToMdns`: Enable mDNS service discovery for ADB ports (default true)
+- `suppressAdbFailureAlerts`: Suppress ADB connection failure alerts
 - `mirroringPlus`: Whether to show "View" button in notifications (Plus feature)
 - `isClipboardSyncEnabled`: Clipboard sync toggle
-- `sendNowPlayingStatus`: Send Mac media info to Android
+- `sendNowPlayingStatus`: Send Mac media info to Android (default true)
+- `autoOpenLinks`: Auto-open links from notifications (free feature, default false)
+- `callNotificationMode`: How to display call notifications - "popup", "notification", or "none" (default "popup")
+- `ringForCalls`: Play ring sound for incoming calls (default true)
 - `windowOpacity`: Main window opacity
 - `menubarTextMaxLength`: Max characters for menu bar text
 - `notificationSound`: Notification sound choice
 - `dismissNotif`: Auto-dismiss notifications on Android when dismissed on Mac
-- `scrcpyBitrate`: scrcpy video bitrate (Mbps)
-- `scrcpyResolution`: scrcpy max resolution
+- `scrcpyBitrate`: scrcpy video bitrate (Mbps, default 4)
+- `scrcpyResolution`: scrcpy max resolution (default 1200)
 - `selectedNetworkAdapterName`: Network adapter for server (nil = auto)
 - `encryptionKey`: AES-256-GCM symmetric key (Base64)
 - `isPlus`: Plus license status
@@ -206,15 +220,26 @@ Key settings persisted in UserDefaults:
 - `hasPairedDeviceOnce`: First pairing flag
 - `pinnedApps`: Pinned apps (JSON array)
 - `isMusicCardHidden`: Hide music card on PhoneView
+- `isCustomAppIconEnabled`: Enable/disable custom app icons (Plus feature)
+- `SUEnableAutomaticChecks`: Sparkle auto-update check toggle (default true)
+- `SUAutomaticallyUpdate`: Sparkle auto-download updates toggle (default false)
 
 ## Important Implementation Notes
 
 **Plus Features:**
 - Screen mirroring (scrcpy integration)
-- Custom app icons
+- Custom app icons (must also be enabled via `isCustomAppIconEnabled` toggle)
 - Advanced settings (window opacity, dock icon hiding, etc.)
 - Plus features are checked via `AppState.shared.isPlus`
 - Self-compiled builds bypass licensing with `#if SELF_COMPILED`
+
+**Free Features (No Plus Required):**
+- Auto-open links from notifications (`autoOpenLinks`)
+- Basic notification mirroring and actions
+- Media control (bidirectional)
+- Clipboard sync
+- File transfers
+- Battery and device status monitoring
 
 **Network Adapter Selection:**
 - Auto mode: Prioritizes en* adapters, then private IPs (192.168.*, 10.*, 172.16-31.*)
@@ -241,6 +266,21 @@ Key settings persisted in UserDefaults:
 - User actions trigger `notificationAction` message to Android
 - Android responds with `notificationActionResponse` (success/failure)
 
+**Call Notifications:**
+- Incoming/ongoing calls can be displayed via `CallNotificationMode` enum:
+  - `popup`: Full-screen call popup (default)
+  - `notification`: System notification only
+  - `none`: No call notifications
+- `ringForCalls` setting controls whether to play ring sound (default true)
+- Call events tracked separately from regular notifications in `AppState.callEvents`
+
+**ADB Connection with mDNS Fallback:**
+- When connecting to ADB, first tries ports reported by Android device
+- If no ports reported and `fallbackToMdns` is enabled, uses `adb mdns services` to discover ports
+- Parses mDNS service list for device IP and extracts port numbers
+- Attempts connection to each discovered port until successful
+- Logs detailed connection attempts for debugging
+
 **AppleScript Support (Core/AppleScriptSupport.swift):**
 - AirSync exposes AppleScript commands defined in AirSync.sdef
 - Commands include: send notification, control media, get device status
@@ -264,6 +304,7 @@ Key settings persisted in UserDefaults:
 2. Define icon in AppIconExtensions.swift: `static let newIcon = AppIcon(...)`
 3. Add to `allIcons` array in AppIconExtensions.swift
 4. Icon will appear in Settings → App Icon picker (Plus feature)
+5. User must have Plus active AND `isCustomAppIconEnabled` toggle enabled to use custom icons
 
 **Adding a New Setting:**
 1. Add @Published property to AppState with didSet to persist to UserDefaults

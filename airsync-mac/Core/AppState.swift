@@ -314,6 +314,12 @@ class AppState: ObservableObject {
             withAnimation {
                 self.notifications.removeAll { $0.id == notif.id }
             }
+
+            // Mark as hidden in history
+            Task {
+                await NotificationHistoryManager.shared.hideNotification(nid: notif.nid)
+            }
+
             if self.dismissNotif {
                 WebSocketServer.shared.dismissNotification(id: notif.nid)
             }
@@ -326,6 +332,12 @@ class AppState: ObservableObject {
             withAnimation {
                 self.notifications.removeAll { $0.nid == nid }
             }
+
+            // Mark as hidden in history
+            Task {
+                await NotificationHistoryManager.shared.hideNotification(nid: nid)
+            }
+
             if self.dismissNotif {
                 WebSocketServer.shared.dismissNotification(id: nid)
             }
@@ -541,6 +553,12 @@ class AppState: ObservableObject {
             withAnimation {
                 self.notifications.removeAll { $0.id == notif.id }
             }
+
+            // Mark as hidden in history
+            Task {
+                await NotificationHistoryManager.shared.hideNotification(nid: notif.nid)
+            }
+
             self.removeNotification(notif)
         }
     }
@@ -579,6 +597,12 @@ class AppState: ObservableObject {
             withAnimation {
                 self.notifications.insert(notif, at: 0)
             }
+
+            // Archive to history database
+            Task {
+                await NotificationHistoryManager.shared.archiveNotification(notif)
+            }
+
             // Trigger native macOS notification
             var appIcon: NSImage? = nil
             if let iconPath = self.androidApps[notif.package]?.iconUrl {
