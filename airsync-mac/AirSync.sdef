@@ -6,7 +6,7 @@
             <cocoa class="NSApplication"/>
         </class>
 
-                <command name="disconnect" code="AirSdisc" description="Disconnect the currently connected device">
+        <command name="disconnect" code="AirSdisc" description="Disconnect the currently connected device">
             <cocoa class="AirSyncDisconnectCommand"/>
             <result type="text" description="Returns disconnection status message"/>
         </command>
