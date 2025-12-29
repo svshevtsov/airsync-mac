@@ -69,7 +69,7 @@ struct AppContentView: View {
                                 }
                                 .help("Clear all notifications")
                                 .keyboardShortcut(.delete, modifiers: .command)
-                                .badge(appState.notifications.count + appState.callEvents.count)
+                                .badge(appState.showUnreadBadge ? appState.notifications.count + appState.callEvents.count : 0)
                             }
                         }
                     }

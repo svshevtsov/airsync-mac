@@ -48,6 +48,10 @@ class AppState: ObservableObject {
         self.dismissNotif = UserDefaults.standard
             .bool(forKey: "dismissNotif")
 
+        // Default to true for showing unread badge (backward compatibility)
+        let savedShowUnreadBadge = UserDefaults.standard.object(forKey: "showUnreadBadge")
+        self.showUnreadBadge = savedShowUnreadBadge == nil ? true : UserDefaults.standard.bool(forKey: "showUnreadBadge")
+
         let savedNotificationMode = UserDefaults.standard
             .string(forKey: "callNotificationMode") ?? CallNotificationMode.popup.rawValue
         self.callNotificationMode = CallNotificationMode(rawValue: savedNotificationMode) ?? .popup
@@ -242,6 +246,13 @@ class AppState: ObservableObject {
     @Published var dismissNotif: Bool {
         didSet {
             UserDefaults.standard.set(dismissNotif, forKey: "dismissNotif")
+        }
+    }
+
+    @Published var showUnreadBadge: Bool {
+        didSet {
+            UserDefaults.standard.set(showUnreadBadge, forKey: "showUnreadBadge")
+            updateDockBadge() // Update dock badge immediately when setting changes
         }
     }
 
@@ -968,7 +979,7 @@ class AppState: ObservableObject {
     private func updateDockBadge() {
         DispatchQueue.main.async {
             let count = self.notifications.count
-            if count > 0 {
+            if count > 0 && self.showUnreadBadge {
                 NSApp.dockTile.badgeLabel = "\(count)"
             } else {
                 NSApp.dockTile.badgeLabel = nil
