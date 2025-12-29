@@ -290,6 +290,8 @@ struct SettingsFeaturesView: View {
 
             SettingsToggleView(name: "Sync notification dismissals", icon: "bell.badge", isOn: $appState.dismissNotif)
 
+            SettingsToggleView(name: "Show unread notification badge", icon: "app.badge", isOn: $appState.showUnreadBadge)
+
             HStack {
                 Label("System Notifications", systemImage: "bell.badge")
 

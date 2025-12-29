@@ -48,6 +48,10 @@ class AppState: ObservableObject {
         self.dismissNotif = UserDefaults.standard
             .bool(forKey: "dismissNotif")
 
+        // Default to true for showing unread badge (backward compatibility)
+        let savedShowUnreadBadge = UserDefaults.standard.object(forKey: "showUnreadBadge")
+        self.showUnreadBadge = savedShowUnreadBadge == nil ? true : UserDefaults.standard.bool(forKey: "showUnreadBadge")
+
         let savedNotificationMode = UserDefaults.standard
             .string(forKey: "callNotificationMode") ?? CallNotificationMode.popup.rawValue
         self.callNotificationMode = CallNotificationMode(rawValue: savedNotificationMode) ?? .popup
@@ -245,6 +249,13 @@ class AppState: ObservableObject {
         }
     }
 
+    @Published var showUnreadBadge: Bool {
+        didSet {
+            UserDefaults.standard.set(showUnreadBadge, forKey: "showUnreadBadge")
+            updateDockBadge() // Update dock badge immediately when setting changes
+        }
+    }
+
     @Published var callNotificationMode: CallNotificationMode = .popup {
         didSet {
             UserDefaults.standard.set(callNotificationMode.rawValue, forKey: "callNotificationMode")
@@ -324,6 +335,8 @@ class AppState: ObservableObject {
                 WebSocketServer.shared.dismissNotification(id: notif.nid)
             }
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notif.nid])
+
+            self.updateDockBadge()
         }
     }
 
@@ -342,6 +355,8 @@ class AppState: ObservableObject {
                 WebSocketServer.shared.dismissNotification(id: nid)
             }
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [nid])
+
+            self.updateDockBadge()
         }
     }
 
@@ -560,6 +575,7 @@ class AppState: ObservableObject {
             }
 
             self.removeNotification(notif)
+            // Note: removeNotification already calls updateDockBadge()
         }
     }
 
@@ -571,6 +587,8 @@ class AppState: ObservableObject {
                 }
             }
             UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+
+            self.updateDockBadge()
         }
     }
 
@@ -589,6 +607,8 @@ class AppState: ObservableObject {
             if self.adbConnected {
                 ADBConnector.disconnectADB()
             }
+
+            self.updateDockBadge()
         }
     }
 
@@ -617,6 +637,8 @@ class AppState: ObservableObject {
                 package: notif.package,
                 actions: notif.actions
             )
+
+            self.updateDockBadge()
         }
     }
 
@@ -741,6 +763,7 @@ class AppState: ObservableObject {
                 for nid in removedNIDs {
                     print("[state] (notification) System notification \(nid) was dismissed manually.")
                     self.removeNotificationById(nid)
+                    // Note: removeNotificationById already calls updateDockBadge()
                 }
             }
         }
@@ -950,6 +973,17 @@ class AppState: ObservableObject {
             print("[state] Network adapter changed from '\(currentSelection ?? "auto")' to '\(validated ?? "auto")'")
             selectedNetworkAdapterName = validated
             shouldRefreshQR = true
+        }
+    }
+    
+    private func updateDockBadge() {
+        DispatchQueue.main.async {
+            let count = self.notifications.count
+            if count > 0 && self.showUnreadBadge {
+                NSApp.dockTile.badgeLabel = "\(count)"
+            } else {
+                NSApp.dockTile.badgeLabel = nil
+            }
         }
     }
 
