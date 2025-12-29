@@ -324,6 +324,8 @@ class AppState: ObservableObject {
                 WebSocketServer.shared.dismissNotification(id: notif.nid)
             }
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notif.nid])
+
+            self.updateDockBadge()
         }
     }
 
@@ -342,6 +344,8 @@ class AppState: ObservableObject {
                 WebSocketServer.shared.dismissNotification(id: nid)
             }
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [nid])
+
+            self.updateDockBadge()
         }
     }
 
@@ -560,6 +564,7 @@ class AppState: ObservableObject {
             }
 
             self.removeNotification(notif)
+            // Note: removeNotification already calls updateDockBadge()
         }
     }
 
@@ -571,6 +576,8 @@ class AppState: ObservableObject {
                 }
             }
             UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+
+            self.updateDockBadge()
         }
     }
 
@@ -589,6 +596,8 @@ class AppState: ObservableObject {
             if self.adbConnected {
                 ADBConnector.disconnectADB()
             }
+
+            self.updateDockBadge()
         }
     }
 
@@ -617,6 +626,8 @@ class AppState: ObservableObject {
                 package: notif.package,
                 actions: notif.actions
             )
+
+            self.updateDockBadge()
         }
     }
 
@@ -741,6 +752,7 @@ class AppState: ObservableObject {
                 for nid in removedNIDs {
                     print("[state] (notification) System notification \(nid) was dismissed manually.")
                     self.removeNotificationById(nid)
+                    // Note: removeNotificationById already calls updateDockBadge()
                 }
             }
         }
@@ -950,6 +962,17 @@ class AppState: ObservableObject {
             print("[state] Network adapter changed from '\(currentSelection ?? "auto")' to '\(validated ?? "auto")'")
             selectedNetworkAdapterName = validated
             shouldRefreshQR = true
+        }
+    }
+    
+    private func updateDockBadge() {
+        DispatchQueue.main.async {
+            let count = self.notifications.count
+            if count > 0 {
+                NSApp.dockTile.badgeLabel = "\(count)"
+            } else {
+                NSApp.dockTile.badgeLabel = nil
+            }
         }
     }
 
